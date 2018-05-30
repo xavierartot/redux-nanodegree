@@ -106,25 +106,20 @@ store.subscribe(() => {
 // unSubscribe()// execute the return with the fn anonyme
 
 // dispatch handle action object
-store.dispatch({
-  type: ADD_GOAL,
-  goal: {
-    id: 0,
-    name: 'work everyday',
-  },
-})
-store.dispatch({
-  type: ADD_GOAL,
-  goal: {
-    id: 1,
-    name: 'Learn Redux',
-  },
-})
-
-store.dispatch({
-  type: REMOVE_GOAL,
+store.dispatch(addGoalAction({
   id: 0,
-})
+  name: 'work everyday',
+}))
+store.dispatch(addGoalAction({
+  id: 1,
+  name: 'work ...',
+}))
+store.dispatch(addGoalAction({
+  id: 4,
+  name: 'work ...',
+}))
+
+store.dispatch(removeGoalAction(1))
 
 store.dispatch(addToDoAction({
   id: 1,
@@ -132,29 +127,14 @@ store.dispatch(addToDoAction({
   complete: false,
 }))
 
+store.dispatch(addToDoAction({
+  id: 3,
+  name: 'Learn Redux',
+  complete: false,
+}))
 
-store.dispatch({
-  type: ADD_TODO,
-  todo: {
-    id: 3,
-    name: 'Learn Redux',
-    complete: false,
-  },
-})
-
-
-store.dispatch({
-  type: REMOVE_TODO,
-  id: 1,
-})
-
-store.dispatch({
-  type: TOGGLE_TODO,
-  todo: {
-    id: 2,
-    complete: false,
-  },
-})
+store.dispatch(removeToDoAction(1))
+store.dispatch(toggleToDoAction(2))
 
 
 // Summary
