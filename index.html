@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width" />
     <title>Udacity Todos Goals</title>
   <style>
-  .toggle-todo {color: red;}
+  ul {list-style: none;}
+  .todoDone {color: #ccc; text-decoration: line-through;}
   </style>
   </head>
   <body>
@@ -30,16 +31,16 @@
           listeners = []
 
         const getState = () => state // 2 Get the state.
-        const subscribe = (listener) => { // 3 Listen to change on the state.
-          // listener is a callback
+        // 3 Listen to change on the state.
+        const subscribe = (listener) => {  //listener is a function anonymous AKA callback or Higher Order Function
           listeners.push(listener)
           return () => {
             listeners = listeners.filter(e => e !== listener)
           }
         }
         // 4 updtate the state with DISPATCH function
-        const dispatch = (action) => { // action = {...}
-          state = reducer(state, action)
+        const dispatch = (action) => { // action = is an object, {...}
+          state = reducer(state, action) //the method reducer return the global state
           listeners.forEach(listener => listener()) // execute the closure listener() in subscribe()
         }
         return {// mandatory return an object
@@ -121,7 +122,7 @@
       const store = createStore(app)
 
       //listener
-      store.subscribe(() => {
+      store.subscribe(() => { //the anonymous function is passed as an argument
         //console.log('The new state is: ', store.getState())
         const {todos, goals} = store.getState()
         document.querySelector('#goals').innerHTML = ''
@@ -154,12 +155,22 @@
 
       const randomId = () => Math.random().toString(6).substr(-8)
       //Dom code
+      function createRemoveButton(onClick) {
+        const removeBtn = document.createElement('button')
+        removeBtn.innerHTML = 'X'
+        removeBtn.addEventListener('click', onClick )
+        return removeBtn
+        
+      }
       function addTodoToDom(todo) { // replaced by an anonimous function
-        let newElement = document.createElement("li")
-        var text = document.createTextNode(todo.name)
-        newElement.appendChild(text)
-        console.log(newElement,todo.complete)
-        newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
+        const newElement = document.createElement("li"),
+        newElement.innerHTML = todo.name
+          removeBtn = createRemoveButton (() => {
+            store.dispatch( removeToDoAction(todo.id) )
+          })
+        newElement.appendChild(removeBtn )
+        //newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
+        todo.complete ? newElement.classList.add('todoDone'): newElement.classList.remove('todoDone')
         newElement.addEventListener('click', () => {
           store.dispatch(toggleToDoAction(todo.id))
         })
