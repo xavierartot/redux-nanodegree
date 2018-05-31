@@ -4,9 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Udacity Todos Goals</title>
+  <style>
+  .toggle-todo {color: red;}
+  </style>
   </head>
   <body>
-    <div>
+  <div>
       <h1>todo list</h1>
       <input id="todo" type="text" placeholder="Add Todo" />
       <button id="todoBtn">Add Todo</button>
@@ -117,8 +120,14 @@
       }
       const store = createStore(app)
 
+      //listener
       store.subscribe(() => {
-        console.log('The new state is: ', store.getState())
+        //console.log('The new state is: ', store.getState())
+        const {todos, goals} = store.getState()
+        document.querySelector('#goals').innerHTML = ''
+        document.querySelector('#todos').innerHTML = ''
+        todos.forEach(addTodoToDom) // add todo.name with li element in ul#todos
+        goals.forEach(addGoalToDom) // add todo.name with li element in ul#todos
       })
 
       // const unSubscribe = store.subscribe(() => {
@@ -132,34 +141,66 @@
       //  name: 'work everyday',
       //}))
       //store.dispatch(addGoalAction({
-      //  id: 1,
-      //  name: 'work ...',
-      //}))
-      //store.dispatch(addGoalAction({
       //  id: 4,
       //  name: 'work ...',
       //}))
-
       //store.dispatch(removeGoalAction(1))
-
-      //store.dispatch(addToDoAction({
-      //  id: 1,
-      //  name: 'Learn Redux',
-      //  complete: false,
-      //}))
-
       //store.dispatch(addToDoAction({
       //  id: 3,
       //  name: 'Learn Redux',
       //  complete: false,
       //}))
-
-      //store.dispatch(removeToDoAction(1))
       //store.dispatch(toggleToDoAction(2))
-function addTodo() {
-}
-function addGoal() {
-}
+
+      const randomId = () => Math.random().toString(6).substr(-8)
+      //Dom code
+      function addTodoToDom(todo) { // replaced by an anonimous function
+        let newElement = document.createElement("li")
+        var text = document.createTextNode(todo.name)
+        newElement.appendChild(text)
+        console.log(newElement,todo.complete)
+        newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
+        newElement.addEventListener('click', () => {
+          store.dispatch(toggleToDoAction(todo.id))
+        })
+        document.querySelector('#todos')
+          .appendChild(newElement)
+      }
+      function addGoalToDom(goal) {
+        let node = document.createElement("li")
+        var text = document.createTextNode(goal.name)
+        node.appendChild(text)
+        document.querySelector('#goals')
+          .appendChild(node)
+      }
+
+      function addTodo() {
+        const input = document.querySelector('#todo'),
+          name = input.value
+        input.value = ''
+        if (name !== '') {
+          store.dispatch(addToDoAction({
+            id: randomId(),
+            name,
+            complete: false,
+          }))
+        }
+      }
+
+      function addGoal() {
+        let input = document.querySelector('#goal')
+        name = input.value
+        input.value.trim() = ''
+        store.dispatch(addGoalAction({
+          id: randomId(),
+          name,
+        }))
+      }
+
+      document.querySelector('#todoBtn').addEventListener('click', addTodo)
+      document.querySelector('#goalBtn').addEventListener('click', addGoal)
+
+        
     </script>
   </body>
 </html>
