@@ -4,10 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Udacity Todos Goals</title>
-  <style>
-  ul {list-style: none;}
-  .todoDone {color: #ccc; text-decoration: line-through;}
-  </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js"></script>
+    <style>
+      ul {list-style: none;}
+      .todoDone {color: #ccc; text-decoration: line-through;}
+    </style>
   </head>
   <body>
   <div>
@@ -24,31 +25,6 @@
     </div>
     <script type="text/javascript">
       // library code
-      function createStore(reducer) {
-        // The store should have four parts
-        // 1 - state tree
-        let state,
-          listeners = []
-
-        const getState = () => state // 2 Get the state.
-        // 3 Listen to change on the state.
-        const subscribe = (listener) => {  //listener is a function anonymous AKA callback or Higher Order Function
-          listeners.push(listener)
-          return () => {
-            listeners = listeners.filter(e => e !== listener)
-          }
-        }
-        // 4 updtate the state with DISPATCH function
-        const dispatch = (action) => { // action = is an object, {...}
-          state = reducer(state, action) //the method reducer return the global state
-          listeners.forEach(listener => listener()) // execute the closure listener() in subscribe()
-        }
-        return {// mandatory return an object
-          getState,
-          subscribe,
-          dispatch,
-        }
-      }
 
       const ADD_TODO = 'ADD_TODO',
         REMOVE_TODO = 'REMOVE_TODO',
@@ -113,13 +89,10 @@
         }
       }
 
-      function app(state = {}, action) {
-        return {
-          todos: todos(state.todos, action), // {...}
-          goals: goals(state.goals, action), // {...}
-        }
-      }
-      const store = createStore(app)
+      const store = Redux.createStore(Redux.combineReducers({ 
+        todos,
+        goals,
+      }))
 
       //listener
       store.subscribe(() => { //the anonymous function is passed as an argument
@@ -130,28 +103,6 @@
         todos.forEach(addTodoToDom) // add todo.name with li element in ul#todos
         goals.forEach(addGoalToDom) // add todo.name with li element in ul#todos
       })
-
-      // const unSubscribe = store.subscribe(() => {
-      // console.log('T...s: ', store.getState())
-      // })
-      // unSubscribe()// execute the return with the fn anonyme
-
-      // dispatch handle action object
-      //store.dispatch(addGoalAction({
-      //  id: 0,
-      //  name: 'work everyday',
-      //}))
-      //store.dispatch(addGoalAction({
-      //  id: 4,
-      //  name: 'work ...',
-      //}))
-      //store.dispatch(removeGoalAction(1))
-      //store.dispatch(addToDoAction({
-      //  id: 3,
-      //  name: 'Learn Redux',
-      //  complete: false,
-      //}))
-      //store.dispatch(toggleToDoAction(2))
 
       const randomId = () => Math.random().toString(6).substr(-8)
       //Dom code
@@ -164,10 +115,10 @@
       }
       function addTodoToDom(todo) { // replaced by an anonimous function
         const newElement = document.createElement("li"),
-        newElement.innerHTML = todo.name
           removeBtn = createRemoveButton (() => {
             store.dispatch( removeToDoAction(todo.id) )
           })
+        newElement.innerHTML = todo.name
         newElement.appendChild(removeBtn )
         //newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
         todo.complete ? newElement.classList.add('todoDone'): newElement.classList.remove('todoDone')
@@ -201,7 +152,7 @@
       function addGoal() {
         let input = document.querySelector('#goal')
         name = input.value
-        input.value.trim() = ''
+        input.value = ''
         store.dispatch(addGoalAction({
           id: randomId(),
           name,
