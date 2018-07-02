@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Udacity Todos Goals</title>
+    <title>Udacity Todos and Goals</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js"></script>
     <style>
       ul {list-style: none;}
@@ -32,31 +32,32 @@
         ADD_GOAL = 'ADD_GOAL',
         REMOVE_GOAL = 'REMOVE_GOAL'
       // action creator function are creating action(dispatcher)
-      function addToDoAction(todo) {
+      function addToDoAction(todo) { //todo is an obj
         return {
           type: ADD_TODO,
           todo,
         }
       }
-      function removeToDoAction(id) {
+      function removeToDoAction(id) { //id is an obj
         return {
           type: REMOVE_TODO,
           id,
         }
       }
-      function toggleToDoAction(id) {
+      function toggleToDoAction(id) { //id is an obj
         return {
           type: TOGGLE_TODO,
           id,
         }
       }
-      function addGoalAction(goal) {
+
+      function addGoalAction(goal) { //goal is an obj
         return {
           type: ADD_GOAL,
           goal,
         }
       }
-      function removeGoalAction(id) {
+      function removeGoalAction(id) { //id is an obj
         return {
           type: REMOVE_GOAL,
           id,
@@ -68,25 +69,31 @@
       function todos(state = [], action) {
         switch (action.type) {
         case ADD_TODO:
-          // return state.concat([action.todo]) // action.todo === {...} un object
-          return [...state, action.todo]
+          return [...state, action.todo] // ex with concat: return state.concat([action.todo]) // action.todo === {...} un object
         case REMOVE_TODO:
           return state.filter(todo => todo.id !== action.id)
         case TOGGLE_TODO:
           return state.map(todo => (todo.id === action.id ? { ...todo, complete: !todo.complete } : todo))
-          // Object.Assign({}, todo, complete: !todo.complete))
+          // ex with Assign: Object.Assign({}, todo, complete: !todo.complete))
         default: return state
         }
       }
       // reducer goals
       function goals(state = [], action) {
         switch (action.type) {
-        case ADD_GOAL:
-          return state.concat([action.goal])
-        case REMOVE_GOAL:
-          return state.filter(goal => goal.id !== action.id)
-        default: return state
+        case ADD_GOAL    : return state.concat([action.goal])
+        case REMOVE_GOAL : return state.filter(goal => goal.id !== action.id)
+        default          : return state
         }
+      }
+
+      function checkAndDispatch(store, action) {
+        if (
+        action.type === ADD_TODO && 
+        action.todo.name.toLowerCase().includes('bitcoin')) {
+          return alert("Nope, That's a bad idea")
+        }
+         return store.dispatch(action) 
       }
 
       const store = Redux.createStore(Redux.combineReducers({ 
@@ -123,7 +130,8 @@
         //newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
         todo.complete ? newElement.classList.add('todoDone'): newElement.classList.remove('todoDone')
         newElement.addEventListener('click', () => {
-          store.dispatch(toggleToDoAction(todo.id))
+         checkAndDispatch( store, toggleToDoAction(todo.id) ) //add the middleware
+          //store.dispatch(toggleToDoAction(todo.id))
         })
         document.querySelector('#todos')
           .appendChild(newElement)
