@@ -27,40 +27,40 @@
       // library code
 
       const ADD_TODO = 'ADD_TODO',
-        REMOVE_TODO = 'REMOVE_TODO',
-        TOGGLE_TODO = 'TOGGLE_TODO',
-        ADD_GOAL = 'ADD_GOAL',
-        REMOVE_GOAL = 'REMOVE_GOAL'
+        REMOVE_TODO  = 'REMOVE_TODO',
+        TOGGLE_TODO  = 'TOGGLE_TODO',
+        ADD_GOAL     = 'ADD_GOAL',
+        REMOVE_GOAL  = 'REMOVE_GOAL'
       // action creator function are creating action(dispatcher)
-      function addToDoAction(todo) { //todo is an obj
+      function addToDoAction(todo) { 
         return {
           type: ADD_TODO,
-          todo,
+          todo,// obj
         }
       }
-      function removeToDoAction(id) { //id is an obj
+      function removeToDoAction(id) {
         return {
           type: REMOVE_TODO,
-          id,
+          id,// obj
         }
       }
-      function toggleToDoAction(id) { //id is an obj
+      function toggleToDoAction(id) {
         return {
           type: TOGGLE_TODO,
-          id,
+          id,// obj
         }
       }
 
-      function addGoalAction(goal) { //goal is an obj
+      function addGoalAction(goal) {
         return {
           type: ADD_GOAL,
-          goal,
+          goal,// obj
         }
       }
-      function removeGoalAction(id) { //id is an obj
+      function removeGoalAction(id) {
         return {
           type: REMOVE_GOAL,
-          id,
+          id,// obj
         }
       }
 
@@ -87,19 +87,55 @@
         }
       }
 
-      function checkAndDispatch(store, action) {
+      // middleware function es6
+      const checker = (store) => (next) => (action) => {
+        console.log(action);
+        console.log(action.todo);
+        console.log(action.todo.name);
         if (
         action.type === ADD_TODO && 
-        action.todo.name.toLowerCase().includes('bitcoin')) {
+        action.todo.name.toLowerCase().includes('bitcoin')
+        ) {
           return alert("Nope, That's a bad idea")
         }
-         return store.dispatch(action) 
+        if (
+        action.type === ADD_GOAL &&
+        action.goal.name.toLowerCase().includes('bitcoin')
+        ) {
+          return alert("Nope, That's a bad idea")
+        }
+       // next manage for a different middleWare or dispatch method
+       return next(action) // next replace store.dispatch(action)
       }
+      // middleware function 
+     //function checker(store) {
+       //return function (next) {
+         //return function (action) {
+            //console.log(action);
+            //console.log(action.todo);
+            //console.log(action.todo.name);
+            //if (
+            //action.type === ADD_TODO && 
+            //action.todo.name.toLowerCase().includes('bitcoin')
+            //) {
+              //return alert("Nope, That's a bad idea")
+            //}
+            //if (
+            //action.type === ADD_GOAL &&
+            //action.goal.name.toLowerCase().includes('bitcoin')
+            //) {
+              //return alert("Nope, That's a bad idea")
+            //}
+           //// next manage for a different middleWare or dispatch method
+           //return next(action) // next replace store.dispatch(action)
+         //}
+       //}
+     //}
 
       const store = Redux.createStore(Redux.combineReducers({ 
         todos,
         goals,
-      }))
+      }), Redux.applyMiddleware(checker))
 
       //listener
       store.subscribe(() => { //the anonymous function is passed as an argument
@@ -123,18 +159,17 @@
       function addTodoToDom(todo) { // replaced by an anonimous function
         const newElement = document.createElement("li"),
           removeBtn = createRemoveButton (() => {
-            store.dispatch( removeToDoAction(todo.id) )
+            store.dispatch(  removeToDoAction(todo.id) ) //add the middleware
           })
         newElement.innerHTML = todo.name
         newElement.appendChild(removeBtn )
         //newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
         todo.complete ? newElement.classList.add('todoDone'): newElement.classList.remove('todoDone')
         newElement.addEventListener('click', () => {
-         checkAndDispatch( store, toggleToDoAction(todo.id) ) //add the middleware
-          //store.dispatch(toggleToDoAction(todo.id))
+          store.dispatch( toggleToDoAction(todo.id) ) //add the middleware
         })
-        document.querySelector('#todos')
-          .appendChild(newElement)
+        console.log(store.getState());
+        document.querySelector('#todos').appendChild(newElement)
       }
       function addGoalToDom(goal) {
         let node = document.createElement("li")
