@@ -222,9 +222,24 @@
     <script type='text/babel'>
       function List(props) {
         return (
-          <ul>
-            <li>LIST</li>
-          </ul>
+          <div>
+            <ul>
+            {
+              props.items.map( element => (
+                <li key={element.id}>
+                  <span
+                    onClick={() => props.toggle && props.toggle(element.id )} 
+                    style={{textDecoration: element.complete?'line-through':'none' }}
+                >{element.name}</span>
+                  <button 
+                    onClick={ () => props.remove(element) }>
+                    X
+                  </button>
+                </li>
+              ))
+            }
+            </ul>
+          </div>
         )
       }
       class Todos extends React.Component {
@@ -240,18 +255,27 @@
             complete: false,
           }))
         }
+        removeItem = (todo) => {
+          this.props.store.dispatch( removeToDoAction(todo.id) )
+        }
+        toggleItem = (id) => {
+          this.props.store.dispatch( toggleToDoAction(id) )
+        }
         render() {
           { console.log(this.props.store) }
           return (
             <div className='todos'>
               <h2>Todos</h2>
               <input 
-              type="text" 
-              placholder='ddd' 
-              ref={ (i) => this.varInput = i} 
+                type="text" 
+                placholder='ddd' 
+                ref={ (i) => this.varInput = i} 
               />
               <button onClick={this.addItem}>Add</button>
-              <List />
+              <List 
+                toggle={this.toggleItem}
+                items={this.props.todos} 
+                remove={this.removeItem}/>
             </div>
           );
         }
@@ -267,6 +291,9 @@
             name,
           }))
         }
+        removeItem = (goal) => {
+          this.props.store.dispatch( removeGoalAction(goal.id) )
+        }
         render() {
           return (
             <div className='goals'>
@@ -276,18 +303,25 @@
                 placeholder='goals...'
                 ref={(input) => { this.varInput  = input }}
                 />
-            <button onClick={this.addItem}>Add</button>
+              <button onClick={this.addItem}>Add</button>
+              <List items={this.props.goals} remove={this.removeItem}/>
             </div>
           );
         }
       }
       class App extends React.Component {
+        componentDidMount() {
+          const {store} = this.props
+          store.subscribe( () => this.forceUpdate() )
+        }
         render() {
+          const {store} = this.props
+          const {todos,goals} = store.getState()
           return (
             <div className='App'>
               <h1>React</h1>
-              <Todos store={this.props.store}/>
-              <Goals store={this.props.store}/>
+              <Todos todos={todos} store={this.props.store}/>
+              <Goals goals={goals} store={this.props.store}/>
             </div>
           );
         }
