@@ -3,6 +3,9 @@
 <head>
   <title>Udacity Todos Goals</title>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js'></script>
+  <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
 </head>
 <body>
   <div>
@@ -17,6 +20,7 @@
     <button id='goalBtn'>Add Goal</button>
     <ul id='goals'></ul>
   </div>
+  <hr>
   <script type='text/javascript'>
     function generateId () {
       return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36);
@@ -191,6 +195,21 @@
       document.getElementById('goals')
         .append(node)
     }
+  </script>
+  <script>
+    //import React, { Component } from 'react';
+    class App extends React.Component {
+      render() {
+        return (
+          <div className='App'>
+          App
+          </div>
+        );
+      }
+    }
+    ReactDOM.render(
+      </App>, document.getElementById('app')
+    )
   </script>
 </body>
 </html>

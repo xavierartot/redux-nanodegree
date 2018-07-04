@@ -1,0 +1,12 @@
+Redux Lesson 3: Middleware
+
+Lesson Challenge
+
+Answer the following questions and share your answers with your classmates:
+
+1) What is Redux middleware and what are some use cases for it?
+Middleware in Redux are function help to have more control between the actions and dispatchers.
+We’ll use with: async request, log, manage the errors.
+
+2) What is the relationship between middleware and the store?
+the middleware will send the data in the store with the method next(action)
