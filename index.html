@@ -167,7 +167,11 @@
           }))
         }
         removeItem = (todo) => {
-          this.props.store.dispatch( removeToDoAction(todo.id) )
+          API.deleteTodo(todo.id) //delete in the API
+            .then( () => {
+              this.props.store.dispatch( removeToDoAction(todo.id) ) // dispatch the delete method
+            }) 
+          )
         }
         toggleItem = (id) => {
           this.props.store.dispatch( toggleToDoAction(id) )
