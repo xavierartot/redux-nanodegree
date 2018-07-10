@@ -8,36 +8,24 @@
     <script src="https://unpkg.com/react@16.3.0-alpha.1/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
     <style>
       ul {list-style: none;}
       .todoDone {color: #ccc; text-decoration: line-through;}
     </style>
   </head>
   <body>
-    <div>
-      <h1>todo list</h1>
-      <input id="todo" type="text" placeholder="Add Todo" />
-      <button id="todoBtn">Add Todo</button>
-      <ul id="todos"></ul>
-    </div>
-    <div>
-      <h1>Goal</h1>
-      <input id="goal" type="text" placeholder="Add Goal" />
-      <button id="goalBtn">Add Goal</button>
-      <ul id="goals"></ul>
-    </div>
     <div id="app">
-      ddd
     </div>
     <script type="text/javascript">
       // library code
-
       const ADD_TODO = 'ADD_TODO',
         REMOVE_TODO  = 'REMOVE_TODO',
         TOGGLE_TODO  = 'TOGGLE_TODO',
         ADD_GOAL     = 'ADD_GOAL',
-        REMOVE_GOAL  = 'REMOVE_GOAL'
-      // action creator function are creating action(dispatcher)
+        REMOVE_GOAL  = 'REMOVE_GOAL',
+        RECEIVE_DATA  = 'RECEIVE_DATA'
+      // action creator function are use in store.dispatcher(...)
       function addToDoAction(todo) { 
         return {
           type: ADD_TODO,
@@ -69,68 +57,59 @@
           id,// obj
         }
       }
+      function receiveDataAction(todos, goals) {
+        return {
+          type: RECEIVE_DATA,
+          todos,
+          goals,
+        }
+      }
 
       // App
       // function reducer todo
       function todos(state = [], action) {
         switch (action.type) {
         case ADD_TODO:
-          return [...state, action.todo] // ex with concat: return state.concat([action.todo]) // action.todo === {...} un object
+          return [...state, action.todo] // ex with concat, add action.todo in array: return state.concat([action.todo]) 
         case REMOVE_TODO:
           return state.filter(todo => todo.id !== action.id)
         case TOGGLE_TODO:
           return state.map(todo => (todo.id === action.id ? { ...todo, complete: !todo.complete } : todo))
           // ex with Assign: Object.Assign({}, todo, complete: !todo.complete))
+        case RECEIVE_DATA: 
+          return action.todos //load data todos, state[] is an empty array
         default: return state
         }
       }
       // reducer goals
       function goals(state = [], action) {
         switch (action.type) {
-        case ADD_GOAL    : return state.concat([action.goal])
-        case REMOVE_GOAL : return state.filter(goal => goal.id !== action.id)
-        default          : return state
+        case ADD_GOAL     : return state.concat([action.goal])
+        case REMOVE_GOAL  : return state.filter(goal => goal.id !== action.id)
+        case RECEIVE_DATA : return action.goals //load data goals, state[] is an empty array
+        default           : return state
+        }
+      }
+      //reducer loading, we add a booleen loading to the state
+      function loading(state = true, action) {
+        switch (action.type ) {
+          case RECEIVE_DATA : return false 
+          default: return state
         }
       }
 
       // middleware function es6
       const checker = (store) => (next) => (action) => {
-        if (
-        action.type === ADD_TODO && 
-        action.todo.name.toLowerCase().includes('bitcoin')
-        ) {
+        if ( action.type === ADD_TODO &&  action.todo.name.toLowerCase().includes('bitcoin') ) {
           return alert("Nope, That's a bad idea")
         }
-        if (
-        action.type === ADD_GOAL &&
-        action.goal.name.toLowerCase().includes('bitcoin')
-        ) {
+        if (action.type === ADD_GOAL && action.goal.name.toLowerCase().includes('bitcoin') ) {
           return alert("Nope, That's a bad idea")
         }
+
        // next manage for a different middleWare or dispatch method
-       return next(action) // next replace store.dispatch(action)
+       return next(action) // next replace store.dispatch( method ) 
       }
-      // middleware function 
-     //function checker(store) {
-       //return function (next) {
-         //return function (action) {
-            //if (
-            //action.type === ADD_TODO && 
-            //action.todo.name.toLowerCase().includes('bitcoin')
-            //) {
-              //return alert("Nope, That's a bad idea")
-            //}
-            //if (
-            //action.type === ADD_GOAL &&
-            //action.goal.name.toLowerCase().includes('bitcoin')
-            //) {
-              //return alert("Nope, That's a bad idea")
-            //}
-           //// next manage for a different middleWare or dispatch method
-           //return next(action) // next replace store.dispatch(action)
-         //}
-       //}
-     //}
 
       const logger  = (store) => (next) => (action) => {
         console.group(action.type)
@@ -140,82 +119,14 @@
         console.groupEnd()
         return result
       }
-
       //signature 
       //const store = Redux.createStore( <reducer-function>, <middleware-functions> )
       const store = Redux.createStore(Redux.combineReducers({ 
         todos, //function
         goals,
+        loading,
       }), Redux.applyMiddleware(checker, logger)) //signature: applyMiddleware(...middlewares)
-
-      //listener
-      store.subscribe(() => { //the anonymous function is passed as an argument
-        //console.log('The new state is: ', store.getState())
-        const {todos, goals} = store.getState()
-        document.querySelector('#goals').innerHTML = ''
-        document.querySelector('#todos').innerHTML = ''
-        todos.forEach(addTodoToDom) // add todo.name with li element in ul#todos
-        goals.forEach(addGoalToDom) // add todo.name with li element in ul#todos
-      })
-
       const randomId = () => Math.random().toString(6).substr(-8)
-      //Dom code
-      function createRemoveButton(onClick) {
-        const removeBtn = document.createElement('button')
-        removeBtn.innerHTML = 'X'
-        removeBtn.addEventListener('click', onClick )
-        return removeBtn
-        
-      }
-      function addTodoToDom(todo) { // replaced by an anonimous function
-        const newElement = document.createElement("li"),
-          removeBtn = createRemoveButton (() => {
-            store.dispatch(  removeToDoAction(todo.id) )
-          })
-        newElement.innerHTML = todo.name
-        newElement.appendChild(removeBtn )
-        //newElement.style.textDecoration = todo.complete ? 'line-through': 'none' 
-        todo.complete ? newElement.classList.add('todoDone'): newElement.classList.remove('todoDone')
-        newElement.addEventListener('click', () => {
-          store.dispatch( toggleToDoAction(todo.id) ) 
-        })
-        document.querySelector('#todos').appendChild(newElement)
-      }
-      function addGoalToDom(goal) {
-        let node = document.createElement("li")
-        var text = document.createTextNode(goal.name)
-        node.appendChild(text)
-        document.querySelector('#goals')
-          .appendChild(node)
-      }
-
-      function addTodo() {
-        const input = document.querySelector('#todo'),
-          name = input.value
-        input.value = ''
-        if (name !== '') {
-          store.dispatch(addToDoAction({
-            id: randomId(),
-            name,
-            complete: false,
-          }))
-        }
-      }
-
-      function addGoal() {
-        let input = document.querySelector('#goal')
-        name = input.value
-        input.value = ''
-        store.dispatch(addGoalAction({
-          id: randomId(),
-          name,
-        }))
-      }
-
-      document.querySelector('#todoBtn').addEventListener('click', addTodo)
-      document.querySelector('#goalBtn').addEventListener('click', addGoal)
-
-        
     </script>
 
     <!--react app-->
@@ -228,7 +139,7 @@
               props.items.map( element => (
                 <li key={element.id}>
                   <span
-                    onClick={() => props.toggle && props.toggle(element.id )} 
+                    onClick={() => props.toggle && props.toggle(element.id )} /* if props.toggle exist then call the method */
                     style={{textDecoration: element.complete?'line-through':'none' }}
                 >{element.name}</span>
                   <button 
@@ -247,7 +158,7 @@
           event.preventDefault()
           //let's work with ref
           const name = this.varInput.value 
-          this.varInput.value = '' // try this.input.reset()
+          this.varInput.value = '' 
           //dispatch in the store
           this.props.store.dispatch(addToDoAction({
             id: randomId(),
@@ -309,14 +220,29 @@
           );
         }
       }
-      class App extends React.Component {
+
+      class App extends React.Component { //container component
         componentDidMount() {
           const {store} = this.props
-          store.subscribe( () => this.forceUpdate() )
+
+          // load the datas
+          Promise.all([
+            API.fetchTodos(),
+            API.fetchGoals()
+          ]).then(([ todos, goals ]) => {
+            store.dispatch(receiveDataAction(todos, goals))
+          })
+ 
+          store.subscribe( () => this.forceUpdate() ) // force to render the render()
         }
         render() {
           const {store} = this.props
-          const {todos,goals} = store.getState()
+          const {todos,goals,loading} = store.getState()
+
+          if (loading === true) {
+            return <h1>loading</h1>
+          }
+
           return (
             <div className='App'>
               <h1>React</h1>
