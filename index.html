@@ -86,7 +86,8 @@
             })
         }
       }
-      //thunkify add goal
+      //thunkify add goal, action creator
+      //action creator with thunk library
       function handleAddGoal(name, cb) {
         return (dispatch) => {
           return API.saveGoal(name) 
@@ -99,6 +100,7 @@
             } )
         }
       }
+      //action creator with thunk library
       function handleAddToDo(name,cb) {
         return (dispatch) => {
           return API.saveTodo(name)
@@ -112,6 +114,7 @@
             } )
         }
       }
+      //action creator with thunk library
       function handleToggleTodo(id) {
         return (dispatch) => {
           dispatch( toggleToDoAction(id) )
@@ -124,6 +127,7 @@
             }) 
         }
       }
+      //action creator with thunk library
       function handleRemoveGoal(goal) {
         return (dispatch) => {
           dispatch( removeGoalAction(goal.id) ) //update the UI
@@ -136,7 +140,16 @@
             })
         }
       }
-          
+         function handleInitialDatas() {
+           return (dispatch) => {
+             Promise.all([
+               API.fetchTodos(),
+               API.fetchGoals()
+             ]).then(([ todos, goals ]) => {
+               dispatch(receiveDataAction(todos, goals))
+             })
+           }
+         } 
       // App
       // function reducer todo
       function todos(state = [], action) {
@@ -294,14 +307,8 @@
       class App extends React.Component { //container component
         componentDidMount() {
           const {store} = this.props
-
           // load the datas
-          Promise.all([
-            API.fetchTodos(),
-            API.fetchGoals()
-          ]).then(([ todos, goals ]) => {
-            store.dispatch(receiveDataAction(todos, goals))
-          })
+          this.props.store.dispatch( handleInitialDatas() )
  
           store.subscribe( () => this.forceUpdate() ) // force to render the render()
         }
