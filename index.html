@@ -65,7 +65,22 @@
           goals,
         }
       }
-
+      //action with logic encapsuled in a function and Thunk
+      function handleDeleteTodo (todo) {
+        return (dispatch) => {
+          //optimistic update: we have always some delay between the database and the UI
+          // optimistically deleting an item in UI
+          dispatch(removeTodoAction(todo.id))
+          //delete in the API and databse forever
+          return API.deleteTodo(todo.id)
+            .catch(() => {
+              //if an error occur with the promise, add the item back
+              dispatch(addTodoAction(todo))
+              //alert the user
+              alert('An error occurred. Try again.')
+            })
+        }
+      }
       // App
       // function reducer todo
       function todos(state = [], action) {
@@ -127,7 +142,7 @@
         todos, //function
         goals,
         loading,
-      }), Redux.applyMiddleware(checker, logger) ) //signature: applyMiddleware(...middlewares)
+      }), Redux.applyMiddleware(ReduxThunk.default, checker, logger) ) //signature: applyMiddleware(...middlewares)
       const randomId = () => Math.random().toString(6).substr(-8)
     </script>
 
@@ -160,7 +175,7 @@
           event.preventDefault()
           //let's work with ref
           const name = this.varInput.value 
-          API.saveTodo(name)
+          return API.saveTodo(name)
             .then( (name) => {
               this.props.store.dispatch(addToDoAction(name))
               this.varInput.value = '' 
@@ -171,25 +186,13 @@
             } )
         }
         removeItem = (todo) => {
-          const { dispatch } = this.props.store
-          //optimistic update: we have always some delay between the database and the UI
-          // optimistically deleting an item in UI
-          dispatch( removeToDoAction(todo.id) ) // I dispatch the delete method
-          //console.log('id:', todo, todo.id);
-
-          API.deleteTodo(todo.id) //delete in the API and databse forever
-            .catch( () => {
-              //if an error occur with the promise, add the item back
-              dispatch( addToDoAction(todo) ) 
-              //alert the user
-              alert("Ooop's an error occured. Try again", console.log(todo))
-            }) 
+          this.props.store.dispatch(handleDeleteTodo(todo))
         }
 
         toggleItem = (id) => {
           this.props.store.dispatch( toggleToDoAction(id) )
 
-          API.saveTodoToggle(id) //delete in the API forever
+          return API.saveTodoToggle(id) //delete in the API forever
             .catch( () => {
               //if an error occur with the promise, add the item back
               this.props.store.dispatch( toggleToDoAction(id) ) 
@@ -221,7 +224,7 @@
           event.preventDefault()
           //add a value with optimistic update
           //const name = this.varInput.value  
-          API.saveGoal(this.varInput.value) 
+          return API.saveGoal(this.varInput.value) 
             .then( (name) => {
               console.log(name);
               this.props.store.dispatch(addGoalAction(name))
