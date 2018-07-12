@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+    <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
     <style>
       ul {list-style: none;}
       .todoDone {color: #ccc; text-decoration: line-through;}
@@ -98,6 +99,7 @@
         }
       }
 
+      //middleware sits between the dispatching of an action, and the running of the reducer
       // middleware function es6
       const checker = (store) => (next) => (action) => {
         if ( action.type === ADD_TODO &&  action.todo.name.toLowerCase().includes('bitcoin') ) {
@@ -106,11 +108,11 @@
         if (action.type === ADD_GOAL && action.goal.name.toLowerCase().includes('bitcoin') ) {
           return alert("Nope, That's a bad idea")
         }
-
        // next manage for a different middleWare or dispatch method
        return next(action) // next replace store.dispatch( method ) 
       }
 
+      // middleware sits between the dispatching of an action, and the running of the reducer
       const logger  = (store) => (next) => (action) => {
         console.group(action.type)
           console.log('The action code: ', action)
@@ -121,11 +123,11 @@
       }
       //signature 
       //const store = Redux.createStore( <reducer-function>, <middleware-functions> )
-      const store = Redux.createStore(Redux.combineReducers({ 
+      const store = Redux.createStore( Redux.combineReducers({ 
         todos, //function
         goals,
         loading,
-      }), Redux.applyMiddleware(checker, logger)) //signature: applyMiddleware(...middlewares)
+      }), Redux.applyMiddleware(checker, logger) ) //signature: applyMiddleware(...middlewares)
       const randomId = () => Math.random().toString(6).substr(-8)
     </script>
 
@@ -158,26 +160,44 @@
           event.preventDefault()
           //let's work with ref
           const name = this.varInput.value 
-          this.varInput.value = '' 
-          //dispatch in the store
-          this.props.store.dispatch(addToDoAction({
-            id: randomId(),
-            name,
-            complete: false,
-          }))
+          API.saveTodo(name)
+            .then( (name) => {
+              this.props.store.dispatch(addToDoAction(name))
+              this.varInput.value = '' 
+            } )
+            .catch( (obj) => {
+              alert("Ooop's an error occured with the server")
+              console.log(obj);
+            } )
         }
         removeItem = (todo) => {
-          API.deleteTodo(todo.id) //delete in the API
-            .then( () => {
-              this.props.store.dispatch( removeToDoAction(todo.id) ) // dispatch the delete method
+          const { dispatch } = this.props.store
+          //optimistic update: we have always some delay between the database and the UI
+          // optimistically deleting an item in UI
+          dispatch( removeToDoAction(todo.id) ) // I dispatch the delete method
+          //console.log('id:', todo, todo.id);
+
+          API.deleteTodo(todo.id) //delete in the API and databse forever
+            .catch( () => {
+              //if an error occur with the promise, add the item back
+              dispatch( addToDoAction(todo) ) 
+              //alert the user
+              alert("Ooop's an error occured. Try again", console.log(todo))
             }) 
-          )
         }
+
         toggleItem = (id) => {
           this.props.store.dispatch( toggleToDoAction(id) )
+
+          API.saveTodoToggle(id) //delete in the API forever
+            .catch( () => {
+              //if an error occur with the promise, add the item back
+              this.props.store.dispatch( toggleToDoAction(id) ) 
+              //alert the user
+              alert("Ooop's an error occured. Try again", console.log(id))
+            }) 
         }
         render() {
-          { console.log(this.props.store) }
           return (
             <div className='todos'>
               <h2>Todos</h2>
@@ -199,16 +219,29 @@
       class Goals extends React.Component {
         addItem = (event) => {
           event.preventDefault()
-          const name = this.varInput.value  
-          this.varInput.value =''
-          this.props.store.dispatch(addGoalAction({
-            id: randomId(),
-            name,
-          }))
+          //add a value with optimistic update
+          //const name = this.varInput.value  
+          API.saveGoal(this.varInput.value) 
+            .then( (name) => {
+              console.log(name);
+              this.props.store.dispatch(addGoalAction(name))
+              this.varInput.value =''
+            } )
+            .catch( () => {
+              alert("Ooop's an error occured with the server")
+            } )
+          
         }
         removeItem = (goal) => {
-          this.props.store.dispatch( removeGoalAction(goal.id) )
+          //optimistic update
+          this.props.store.dispatch( removeGoalAction(goal.id) ) //update the UI
+          API.deleteGoal(goal.id) // update the server
+            .catch(() => {
+              this.props.store.dispatch( addGoalAction(goal) ) // if an error occur add back in the UI the update
+              alert("Ooop's an error occured with the server", console.log(goal))// alert the mistake to the UI
+            })
         }
+
         render() {
           return (
             <div className='goals'>

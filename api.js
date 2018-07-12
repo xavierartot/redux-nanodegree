@@ -97,7 +97,6 @@
         todos = todos.map(todo => (todo.id !== id ? todo : Object.assign({}, todo, {
           complete: !todo.complete,
         })))
-
         fail() ? rej() : res(todos)
       }, 300)
     })
