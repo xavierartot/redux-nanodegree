@@ -281,7 +281,6 @@
             <Context.Consumer>
               {(store) => {
                 const { todos } = store.getState()
-
                 return <Todos todos={todos} dispatch={store.dispatch} />
               }}
             </Context.Consumer>
@@ -337,12 +336,11 @@
         componentDidMount() {
           const {store} = this.props
           // load the datas
-          this.props.store.dispatch( handleInitialDatas() )
+          store.dispatch( handleInitialDatas() )
  
           store.subscribe( () => this.forceUpdate() ) // force to render the render()
         }
         render() {
-          const {store} = this.props
           const {loading} = store.getState()
 
           if (loading === true) {
@@ -371,16 +369,19 @@
         }
       }
 
-      //Context give as a property Provider as well a property Consumer
+      //Context give us a property Provider as well a property Consumer
       const Context = React.createContext()
+
       //create our own Provider component
       class Provider extends React.Component {
         render() {
           return (
             <Context.Provider value={this.props.store}>
-              {this.props.children}
+              {/* is mostly element children //learn.co/lessons/react-this-props-children*/}
+              {this.props.children} 
+              {/* in our case this.props.children is similar to call <ConnectedApp /> */}
             </Context.Provider>
-          );
+          )
         }
       }
       
@@ -389,7 +390,6 @@
           <ConnectedApp />
         </Provider>, 
         document.getElementById('app')
-        
       )
     </script>
   </body>
