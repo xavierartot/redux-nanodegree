@@ -29,7 +29,7 @@
         TOGGLE_TODO  = 'TOGGLE_TODO',
         ADD_GOAL     = 'ADD_GOAL',
         REMOVE_GOAL  = 'REMOVE_GOAL',
-        RECEIVE_DATA  = 'RECEIVE_DATA'
+        RECEIVE_DATA = 'RECEIVE_DATA'
       // action creator function are use in store.dispatcher(...)
       function addToDoAction(todo) { 
         return {
@@ -243,7 +243,7 @@
         addItem = (event) => {
           event.preventDefault()
           if(this.varInput.value && this.varInput.value !== ''){
-            this.props.store.dispatch(handleAddToDo(
+            this.props.dispatch(handleAddToDo(
               this.varInput.value ,
               () => this.varInput.value = ''
             )) 
@@ -252,10 +252,10 @@
           }
         }
         removeItem = (todo) => {
-          this.props.store.dispatch(handleDeleteTodo(todo))
+          this.props.dispatch(handleDeleteTodo(todo))
         }
         toggleItem = (id) => {
-          this.props.store.dispatch(handleToggleTodo(id)) 
+          this.props.dispatch(handleToggleTodo(id)) 
         }
         render() {
           return (
@@ -275,17 +275,30 @@
           );
         }
       }
+      class ConnectedTodos extends React.Component {
+        render() {
+          return (
+            <Context.Consumer>
+              {(store) => {
+                const { todos } = store.getState()
+
+                return <Todos todos={todos} dispatch={store.dispatch} />
+              }}
+            </Context.Consumer>
+          )
+        }
+      }
 
       class Goals extends React.Component {
         addItem = (event) => {
           event.preventDefault()
-          this.props.store.dispatch( handleAddGoal(
+          this.props.dispatch( handleAddGoal(
             this.varInput.value,
             () => this.varInput.value = ''  
           ))
         }
         removeItem = (goal) => {
-          this.props.store.dispatch( handleRemoveGoal(goal) )
+          this.props.dispatch( handleRemoveGoal(goal) )
         }
 
         render() {
@@ -302,6 +315,22 @@
             </div>
           );
         }
+      }//<Goals
+      //create a pattern CONNECTED COMPONENT
+      //this component will be responsable to connect to the store
+      //*this component is in contrast with presentationnal component, who's responsible for rendering content
+      //A connected component is connected to the Redux store and is responsible for getting data from the store.
+      class ConnectedGoals extends React.Component {
+        render() {
+          return (
+            <Context.Consumer>
+              {(store) => {
+                const { goals } = store.getState()
+                return <Goals goals={goals} dispatch={store.dispatch} />
+              }}
+            </Context.Consumer>
+          );
+        }
       }
 
       class App extends React.Component { //container component
@@ -314,7 +343,7 @@
         }
         render() {
           const {store} = this.props
-          const {todos,goals,loading} = store.getState()
+          const {loading} = store.getState()
 
           if (loading === true) {
             return <h1>loading</h1>
@@ -323,15 +352,44 @@
           return (
             <div className='App'>
               <h1>React</h1>
-              <Todos todos={todos} store={this.props.store}/>
-              <Goals goals={goals} store={this.props.store}/>
+              <ConnectedTodos />
+              <ConnectedGoals /> 
             </div>
           );
         }
       }
+
+      class ConnectedApp extends React.Component {
+        render() {
+          return (
+            <Context.Consumer>
+              {(store) => (
+                <App store={store} />
+              )}
+            </Context.Consumer>
+          )
+        }
+      }
+
+      //Context give as a property Provider as well a property Consumer
+      const Context = React.createContext()
+      //create our own Provider component
+      class Provider extends React.Component {
+        render() {
+          return (
+            <Context.Provider value={this.props.store}>
+              {this.props.children}
+            </Context.Provider>
+          );
+        }
+      }
+      
       ReactDOM.render(
-        <App store={store}/>, 
+        <Provider store={store}>
+          <ConnectedApp />
+        </Provider>, 
         document.getElementById('app')
+        
       )
     </script>
   </body>
