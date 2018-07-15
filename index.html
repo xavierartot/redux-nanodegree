@@ -275,18 +275,10 @@
           );
         }
       }
-      class ConnectedTodos extends React.Component {
-        render() {
-          return (
-            <Context.Consumer>
-              {(store) => {
-                const { todos } = store.getState()
-                return <Todos todos={todos} dispatch={store.dispatch} />
-              }}
-            </Context.Consumer>
-          )
-        }
-      }
+      //signature: connect(state)(component)
+      const ConnectedTodos = connect((state) => ({
+        todos: state.todos
+      }))(Todos)
 
       class Goals extends React.Component {
         addItem = (event) => {
@@ -315,35 +307,17 @@
           );
         }
       }//<Goals
-      //create a pattern CONNECTED COMPONENT
-      //this component will be responsable to connect to the store
-      //*this component is in contrast with presentationnal component, who's responsible for rendering content
-      //A connected component is connected to the Redux store and is responsible for getting data from the store.
-      class ConnectedGoals extends React.Component {
-        render() {
-          return (
-            <Context.Consumer>
-              {(store) => {
-                const { goals } = store.getState()
-                return <Goals goals={goals} dispatch={store.dispatch} />
-              }}
-            </Context.Consumer>
-          );
-        }
-      }
+      const ConnectedGoals = connect((state) => ({
+        goals: state.goals
+      }))(Goals)
 
       class App extends React.Component { //container component
         componentDidMount() {
-          const {store} = this.props
-          // load the datas
-          store.dispatch( handleInitialDatas() )
- 
-          store.subscribe( () => this.forceUpdate() ) // force to render the render()
+          const { dispatch } = this.props
+          dispatch(handleInitialData())
         }
         render() {
-          const {loading} = store.getState()
-
-          if (loading === true) {
+          if ( this.props.loading === true) {
             return <h1>loading</h1>
           }
 
@@ -357,28 +331,23 @@
         }
       }
 
-      class ConnectedApp extends React.Component {
-        render() {
-          return (
-            <Context.Consumer>
-              {(store) => (
-                <App store={store} />
-              )}
-            </Context.Consumer>
-          )
-        }
-      }
-
+      const ConnectedApp = connect((state) => ({
+        loading: state.loading
+      }))(App)
       //Context give us a property Provider as well a property Consumer
       const Context = React.createContext()
 
-      //create our own Provider component
-      class Provider extends React.Component {
+      //pattern CONNECTED COMPONENT
+      //this component will be responsable to connect to the store
+      //*this component is in contrast with presentationnal component, who's responsible for rendering content
+      //A connected component is connected to the Redux store and is responsible for getting data from the store.
+      //here create our own Provider component
+      class ProviderWrapper extends React.Component {
         render() {
           return (
-            <Context.Provider value={this.props.store}>
+            <Context.Provider value={this.props.store}> {/* this.props.store come from redux */}
               {/* is mostly element children //learn.co/lessons/react-this-props-children*/}
-              {this.props.children} 
+              <ConnectedApp />
               {/* in our case this.props.children is similar to call <ConnectedApp /> */}
             </Context.Provider>
           )
@@ -386,9 +355,9 @@
       }
       
       ReactDOM.render(
-        <Provider store={store}>
+        <ProviderWrapper store={store}> {/* the value "store" come from redux */}
           <ConnectedApp />
-        </Provider>, 
+        </ProviderWrapper>, 
         document.getElementById('app')
       )
     </script>
