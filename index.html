@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
     <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
     <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
+    <script src="https://unpkg.com/react-redux@5.0.6/dist/react-redux.min.js"></script>
     <style>
       ul {list-style: none;}
       .todoDone {color: #ccc; text-decoration: line-through;}
@@ -140,16 +141,16 @@
             })
         }
       }
-         function handleInitialDatas() {
-           return (dispatch) => {
-             Promise.all([
-               API.fetchTodos(),
-               API.fetchGoals()
-             ]).then(([ todos, goals ]) => {
-               dispatch(receiveDataAction(todos, goals))
-             })
-           }
-         } 
+      function handleInitialDatas() {
+        return (dispatch) => {
+          Promise.all([
+            API.fetchTodos(),
+            API.fetchGoals()
+          ]).then(([ todos, goals ]) => {
+            dispatch(receiveDataAction(todos, goals))
+          })
+        }
+      } 
       // App
       // function reducer todo
       function todos(state = [], action) {
@@ -276,7 +277,7 @@
         }
       }
       //signature: connect(state)(component)
-      const ConnectedTodos = connect((state) => ({
+      const ConnectedTodos = ReactRedux.connect((state) => ({
         todos: state.todos
       }))(Todos)
 
@@ -302,23 +303,27 @@
                 ref={(input) => { this.varInput  = input }}
                 />
               <button onClick={this.addItem}>Add</button>
-              <List items={this.props.goals} remove={this.removeItem}/>
+              <List 
+                items={this.props.goals} 
+                remove={this.removeItem}
+              />
             </div>
           );
         }
       }//<Goals
-      const ConnectedGoals = connect((state) => ({
+
+      const ConnectedGoals = ReactRedux.connect((state) => ({
         goals: state.goals
       }))(Goals)
 
       class App extends React.Component { //container component
         componentDidMount() {
           const { dispatch } = this.props
-          dispatch(handleInitialData())
+          dispatch(handleInitialDatas())
         }
         render() {
-          if ( this.props.loading === true) {
-            return <h1>loading</h1>
+          if (this.props.loading === true) {
+            return <h3>Loading</h3>
           }
 
           return (
@@ -331,35 +336,20 @@
         }
       }
 
-      const ConnectedApp = connect((state) => ({
-        loading: state.loading
-      }))(App)
-      //Context give us a property Provider as well a property Consumer
-      const Context = React.createContext()
+      //signature: const buildConnectedComponent = connect(mapStateToProps, mapDispatchToProps);
+    const ConnectedApp = ReactRedux.connect((state) => ({
+      loading: state.loading
+    }))(App)
 
-      //pattern CONNECTED COMPONENT
-      //this component will be responsable to connect to the store
-      //*this component is in contrast with presentationnal component, who's responsible for rendering content
-      //A connected component is connected to the Redux store and is responsible for getting data from the store.
-      //here create our own Provider component
-      class ProviderWrapper extends React.Component {
-        render() {
-          return (
-            <Context.Provider value={this.props.store}> {/* this.props.store come from redux */}
-              {/* is mostly element children //learn.co/lessons/react-this-props-children*/}
-              <ConnectedApp />
-              {/* in our case this.props.children is similar to call <ConnectedApp /> */}
-            </Context.Provider>
-          )
-        }
-      }
       
-      ReactDOM.render(
-        <ProviderWrapper store={store}> {/* the value "store" come from redux */}
-          <ConnectedApp />
-        </ProviderWrapper>, 
-        document.getElementById('app')
-      )
+    ReactDOM.render(
+      <ReactRedux.Provider store={store}> 
+        {/* the value "store" come from redux */}
+        <ConnectedApp />
+      </ReactRedux.Provider>, 
+      document.getElementById('app')
+    )
+
     </script>
   </body>
 </html>
