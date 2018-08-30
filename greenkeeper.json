@@ -1,0 +1,9 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "udacity-goals-todos/package.json"
+      ]
+    }
+  }
+}
